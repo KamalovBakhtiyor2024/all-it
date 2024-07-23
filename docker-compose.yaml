@@ -1,0 +1,74 @@
+version: "3"
+
+services:
+  backend:
+    build: ./backend
+    container_name: backend
+    restart: always
+    command: >
+      bash -c "python3 manage.py makemigrations
+      && python3 manage.py migrate
+      && python3 manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./backend:/usr/src/all-it
+    networks:
+      - network:
+    ports:
+      - 8200:8200
+    depends_on:
+      - database
+  frontend:
+    build: .
+    container_name: frontend
+    restart: always
+    command: npm run serve
+    volumes:
+      - ./:/usr/src/all-it
+    networks:
+      - network:
+    ports:
+      - 8080:8080
+    depends_on:
+     - backend
+  database:
+    image: postgres
+    container_name: database
+    restart: always
+    environment:
+      - POSTGRES_PASSWORD=gwSQv9ii
+      - POSTGRES_DB=database
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks:
+      - network:
+    ports:
+      - 5432:5432
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=bahtierkamalov21@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=A8CTt9XWNYSc
+    networks:
+      - network
+    ports:
+      - 5050:5050
+  nginx:
+    image: nginx
+    container_name: nginx_server
+    restart: always
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./serts/certificate.crt:/usr/share/nginx/serts/certificate.crt
+      - ./serts/privateKey.key:/usr/share/nginx/serts/certificate.key
+    networks:
+      - network:
+    ports:
+      - 80:80
+      - 443:443
+volumes:
+  pg_data:
+networks:
+  network:
+    driver: bridge
